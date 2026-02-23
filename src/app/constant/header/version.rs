@@ -18,7 +18,7 @@ use manually_init::ManuallyInit;
 crate::define_typed_constants! {
     &'static str => {
         /// 默认的客户端版本号
-        DEFAULT_CLIENT_VERSION = "2.0.0",
+        DEFAULT_CLIENT_VERSION = "2.5.0",
         /// 环境变量名：Cursor 客户端版本
         ENV_CURSOR_CLIENT_VERSION = "CURSOR_CLIENT_VERSION",
         /// Chrome 版本信息

@@ -43,24 +43,15 @@ pub enum ChatCompletionMessageParam {
     User { content: ChatCompletionContent },
     #[serde(rename = "assistant")]
     Assistant {
-        content: ChatCompletionContentText,
-        #[serde(with = "option_as_array", default, skip_serializing_if = "Option::is_none")]
-        tool_calls: Option<Box<ChatCompletionMessageToolCall>>,
+        /// 可为 null（例如仅 tool_calls 无文本时）
+        #[serde(default)]
+        content: Option<ChatCompletionContentText>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        tool_calls: Option<Vec<ChatCompletionMessageToolCall>>,
     },
     #[serde(rename = "tool")]
     Tool { content: ChatCompletionContentText, tool_call_id: ByteStr },
 }
-
-// impl ChatCompletionMessageParam {
-//     #[inline]
-//     pub fn role(&self) -> Role {
-//         match self {
-//             Self::System { .. } => Role::System,
-//             Self::User { .. } | Self::Tool { .. } => Role::User,
-//             Self::Assistant { .. } => Role::Assistant,
-//         }
-//     }
-// }
 
 #[derive(Serialize, Deserialize)]
 #[serde(untagged)]
@@ -100,24 +91,42 @@ impl ChatCompletionContentText {
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ChatCompletionContentPartText {
     Text { text: String },
+    /// 推理/思考内容块（如 OpenAI/Cursor 扩展）
+    Thinking { thinking: String },
+    /// 工具等 input_json 块，请求中可能出现
+    InputJson { input: String },
+    /// 其他未知 type，避免因新类型导致 422
+    #[serde(other)]
+    Other,
 }
 
 impl ChatCompletionContentPartText {
     pub fn text(self) -> String {
-        let Self::Text { text } = self;
-        text
+        match self {
+            Self::Text { text } => text,
+            Self::Thinking { thinking } => thinking,
+            Self::InputJson { .. } | Self::Other => String::new(),
+        }
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ChatCompletionMessageToolCall {
     Function { id: ByteStr, function: chat_completion_message_tool_call::Function },
 }
 
+impl ChatCompletionMessageToolCall {
+    pub fn id(&self) -> &ByteStr {
+        match self {
+            Self::Function { id, .. } => id,
+        }
+    }
+}
+
 pub mod chat_completion_message_tool_call {
     use super::{ByteStr, Deserialize, Serialize};
-    #[derive(Serialize, Deserialize)]
+    #[derive(Clone, Serialize, Deserialize)]
     pub struct Function {
         pub arguments: String,
         pub name: ByteStr,

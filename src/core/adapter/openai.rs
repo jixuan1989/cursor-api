@@ -220,25 +220,25 @@ impl Adapter for Openai {
                 }
                 ChatCompletionMessageParam::Assistant { content, tool_calls } => {
                     is_user = false;
-                    atext = match content {
-                        ChatCompletionContentText::String(text) => text,
-                        ChatCompletionContentText::Array(contents) => {
-                            let mut text_parts = Vec::new();
-                            for content in contents {
-                                text_parts.push(content.text())
+                    atext = content
+                        .map(|c| match c {
+                            ChatCompletionContentText::String(text) => text,
+                            ChatCompletionContentText::Array(contents) => {
+                                let mut text_parts = Vec::new();
+                                for content in contents {
+                                    text_parts.push(content.text())
+                                }
+                                text_parts.join(NEWLINE)
                             }
-                            text_parts.join(NEWLINE)
-                        }
-                    };
-                    if tool_calls.is_some()
-                        && let ChatCompletionMessageToolCall::Function { id, function } =
-                            *__unwrap!(tool_calls)
-                        && let Some(ChatCompletionMessageParam::Tool { tool_call_id, .. }) =
-                            params.peek()
-                        && id[..] == tool_call_id[..]
+                        })
+                        .unwrap_or_default();
+                    if let (Some(tc_list), Some(ChatCompletionMessageParam::Tool { tool_call_id, .. })) =
+                        (tool_calls.as_ref(), params.peek())
                     {
-                        drop(id);
-                        let Function { arguments, name } = function;
+                        if let Some(ChatCompletionMessageToolCall::Function { function, .. }) =
+                            tc_list.iter().find(|tc| tc.id()[..] == tool_call_id[..]).cloned()
+                        {
+                            let Function { arguments, name } = function;
                         let Some(ChatCompletionMessageParam::Tool { content, tool_call_id }) =
                             params.next()
                         else {
@@ -302,6 +302,7 @@ impl Adapter for Openai {
                             ),
                             ..Default::default()
                         });
+                        }
                     }
                 }
                 _ => continue,

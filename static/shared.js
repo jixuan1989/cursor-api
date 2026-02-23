@@ -145,8 +145,9 @@ async function makeAuthenticatedRequest(url, options = {}) {
     return null;
   }
 
-  if (!/^[A-Za-z0-9\-._~+/]+=*$/.test(token)) {
-    showGlobalMessage("TOKEN格式无效，请检查是否包含特殊字符", true);
+  // 允许常见密钥字符（含 JWT/Cookie 中可能出现的 : % 等），避免误填 Cursor Cookie 时只报格式错误
+  if (!/^[\x20-\x7E]+$/.test(token)) {
+    showGlobalMessage("TOKEN 格式无效：仅支持可打印 ASCII 字符", true);
     return null;
   }
 
@@ -162,7 +163,16 @@ async function makeAuthenticatedRequest(url, options = {}) {
     const response = await fetch(url, { ...defaultOptions, ...options });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      if (response.status === 401) {
+        showGlobalMessage(
+          "401 认证失败：请确认输入的是启动服务时环境变量 AUTH_TOKEN 的值（管理员令牌），不是 Cursor 的 Cookie。",
+          true,
+          6000
+        );
+      } else {
+        showGlobalMessage(`请求失败: HTTP ${response.status}`, true);
+      }
+      return null;
     }
 
     return await response.json();

@@ -1,3 +1,5 @@
+cargo-features = ["edition2024"]
+
 [package]
 description = "LZMA / LZMA2 / LZIP / XZ compression ported from 'tukaani xz for java'"
 edition = "2024"

@@ -32,7 +32,7 @@ crate::define_typed_constants! {
         // Default values
         DEFAULT_ENV_FILE = ".env",
         DEFAULT_LISTEN_HOST = "0.0.0.0",
-        DEFAULT_LISTEN_PORT = "3000",
+        DEFAULT_LISTEN_PORT = "5555",
 
         // Environment variable names
         ENV_HOST = "HOST",
@@ -388,11 +388,11 @@ Hi! I'm {program}, and here's what I understand:
 
 🌐 Server stuff:  
    {program} listen on 127.0.0.1 port 8080                   Listen on specific IP and port
-   {program} listen on localhost port 3000                   Listen on localhost with port
+   {program} listen on localhost port 5555                   Listen on localhost with port
    {program} listen on port 8080                             Listen on all interfaces (0.0.0.0)
    {program} listen on 192.168.1.1:8080                      IP:port format
    {program} listen on 8080                                  Just the port (defaults to 0.0.0.0)
-   {program} listen on localhost                             Just the host (defaults to port 3000)
+   {program} listen on localhost                             Just the host (defaults to port 5555)
 
 ❓ Getting help:  
    {program} help                                            Show this message

@@ -1,3 +1,5 @@
+cargo-features = ["edition2024"]
+
 [package]
 name = "cursor-api-build"
 version = "0.0.0"

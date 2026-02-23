@@ -1,3 +1,9 @@
+# 使用本地代理（仅在本项目执行 cargo 时生效）
+[http]
+proxy = "http://localhost:1081"
+[https]
+proxy = "http://localhost:1081"
+
 # [unstable]
 # profile-rustflags = true
 # trim-paths = true

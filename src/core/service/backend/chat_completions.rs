@@ -226,13 +226,9 @@ fn try_continue(
         if let [
             ..,
             ChatCompletionMessageParam::Assistant { tool_calls: Some(tool_calls), .. },
-            ChatCompletionMessageParam::Tool { content, tool_call_id },
+            ChatCompletionMessageParam::Tool { tool_call_id, .. },
         ] = params
-            && let ChatCompletionMessageToolCall::Function {
-                id,
-                function: chat_completion_message_tool_call::Function { arguments, name },
-            } = &**tool_calls
-            && id == tool_call_id
+            && tool_calls.iter().any(|tc| tc.id()[..] == tool_call_id[..])
         {
             true
         } else {
@@ -249,12 +245,15 @@ fn try_continue(
             core::hint::assert_unchecked(len < params.capacity());
             let ptr = params.as_ptr();
             (core::ptr::read(ptr.add(len)), core::ptr::read(ptr.add(len + 1)))
-        } && let ChatCompletionMessageToolCall::Function {
-            function: chat_completion_message_tool_call::Function { arguments, name },
-            ..
-        } = *tool_calls
-        {
-            Ok((content, tool_call_id, name, arguments))
+        } {
+            if let Some(ChatCompletionMessageToolCall::Function {
+                function: chat_completion_message_tool_call::Function { arguments, name },
+                ..
+            }) = tool_calls.into_iter().find(|tc| tc.id()[..] == tool_call_id[..])
+            {
+                return Ok((content, tool_call_id, name, arguments));
+            }
+            __unreachable!()
         } else {
             __unreachable!()
         }

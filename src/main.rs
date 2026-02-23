@@ -238,7 +238,7 @@ async fn run() {
     // 启动服务器
     let listener = {
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-        let port = std::env::var(ENV_PORT).ok().and_then(|v| v.trim().parse().ok()).unwrap_or(3000);
+        let port = std::env::var(ENV_PORT).ok().and_then(|v| v.trim().parse().ok()).unwrap_or(5555);
         let addr = SocketAddr::new(
             IpAddr::parse_ascii(parse_from_env(ENV_HOST, DEFAULT_LISTEN_HOST).as_bytes())
                 .unwrap_or_else(|e| {

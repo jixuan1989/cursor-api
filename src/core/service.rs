@@ -49,6 +49,7 @@ use axum::{
     response::Response,
 };
 use bytes::Bytes;
+use http_body_util::BodyExt as _;
 use core::{
     convert::Infallible,
     sync::atomic::{AtomicU32, Ordering},
@@ -206,8 +207,39 @@ atomic_enum!(LastContentType = u8);
 pub async fn handle_chat_completions(
     State(state): State<Arc<AppState>>,
     mut extensions: Extensions,
-    Json(request): Json<openai::ChatCompletionCreateParams>,
+    body: Body,
 ) -> Result<Response<Body>, (StatusCode, Json<OpenAiError>)> {
+    let body_bytes = body
+        .collect()
+        .await
+        .map_err(|_| {
+            (
+                StatusCode::BAD_REQUEST,
+                Json(
+                    openai::OpenAiErrorInner {
+                        code: Some(alloc::borrow::Cow::Borrowed("invalid_request")),
+                        message: alloc::borrow::Cow::Borrowed("failed to read request body"),
+                    }
+                    .wrapped(),
+                ),
+            )
+        })?
+        .to_bytes();
+
+    let request: openai::ChatCompletionCreateParams =
+        serde_json::from_slice(&body_bytes).map_err(|e| {
+            (
+                StatusCode::UNPROCESSABLE_ENTITY,
+                Json(
+                    openai::OpenAiErrorInner {
+                        code: Some(alloc::borrow::Cow::Borrowed("invalid_request")),
+                        message: alloc::borrow::Cow::Owned(e.to_string()),
+                    }
+                    .wrapped(),
+                ),
+            )
+        })?;
+
     let (ext_token, use_pri) =
         __unwrap!(extensions.remove::<TokenBundleResult>()).map_err(|e| e.into_openai_tuple())?;
 

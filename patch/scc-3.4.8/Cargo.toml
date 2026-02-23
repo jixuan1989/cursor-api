@@ -1,3 +1,5 @@
+cargo-features = ["edition2024"]
+
 [package]
 name = "scc"
 description = "A collection of high-performance asynchronous/concurrent containers with both asynchronous and synchronous interfaces"

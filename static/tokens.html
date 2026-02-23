@@ -770,6 +770,9 @@
     <div class="form-group">
       <label>认证令牌:</label>
       <input type="password" id="authToken" placeholder="输入 AUTH_TOKEN" />
+      <span class="input-hint" style="display:block;margin-top:4px;color:var(--text-secondary);font-size:12px;">
+        此处填写 .env 中的 AUTH_TOKEN（管理员密码），不是 Cursor 的 Cookie。与启动服务时配置的值必须完全一致。
+      </span>
     </div>
   </div>
 
