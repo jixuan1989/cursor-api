@@ -1,0 +1,19 @@
+[Unit]
+Description=Cursor API Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/codes/cursor-api
+Environment=RUST_LOG=info
+ExecStart=%h/codes/cursor-api/target/release/cursor-api
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# 资源限制
+LimitNOFILE=65536
+
+[Install]
+WantedBy=default.target
